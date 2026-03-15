@@ -13,7 +13,7 @@ spec:
       targetRevision: "9.4.10"
       helm:
         valueFiles:
-          - $values/infra/argocd/values.yaml
+          - $values/infra/argocd/chart/values.yaml
     - repoURL: https://github.com/Neidn/personal-k3s-gitops
       targetRevision: main
       ref: values

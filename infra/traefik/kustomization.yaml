@@ -5,4 +5,4 @@ namespace: kube-system
 
 resources:
   - helmchartconfig.yaml
-  - dashboard.yaml
+  - ingressroute.yaml
