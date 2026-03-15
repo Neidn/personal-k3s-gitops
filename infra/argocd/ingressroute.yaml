@@ -2,7 +2,7 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: argocd-server-ipallowlist
-  namespace: kube-system
+  namespace: argocd
 spec:
   ipAllowList:
     sourceRange:
@@ -22,7 +22,7 @@ spec:
       match: Host(`argocd.neidn.com`)
       middlewares:
         - name: argocd-server-ipallowlist
-          namespace: kube-system
+          namespace: argocd
       priority: 10
       services:
         - name: argocd-server
