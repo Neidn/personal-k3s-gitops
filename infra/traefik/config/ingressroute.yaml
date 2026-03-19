@@ -1,20 +1,9 @@
 # =============================================================================
 # infra/traefik/config/ingressroute.yaml
+#
 # Traefik 대시보드 IngressRoute
-# wave: 0 으로 HelmChartConfig 와 함께 적용
+# IP 제한은 shared-ipallowlist (kube-system) 참조
 # =============================================================================
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: dashboard-ipallowlist
-  namespace: kube-system
-spec:
-  ipAllowList:
-    sourceRange:
-      - "118.36.224.186/32"
-      - "211.44.192.110/32"
-      # 필요 시 추가 IP
----
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -27,7 +16,8 @@ spec:
     - match: Host(`traefik.neidn.com`)
       kind: Rule
       middlewares:
-        - name: dashboard-ipallowlist
+        - name: shared-ipallowlist
+          namespace: kube-system    # 공유 Middleware 참조
       services:
         - name: api@internal
           kind: TraefikService

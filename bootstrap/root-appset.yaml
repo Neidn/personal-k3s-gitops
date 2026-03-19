@@ -1,14 +1,15 @@
 # =============================================================================
-# Root ApplicationSet — 진입점 (bootstrap/install.sh 에서 1회 적용)
+# bootstrap/root-appset.yaml
 #
-# 역할:
-#   infra/ 하위 디렉토리를 자동 스캔 → Application 자동 생성
-#   새 앱 추가 = infra/{앱명}/ 폴더 생성 후 Git push 만으로 완료
+# infra/ 하위 디렉토리를 스캔해서 Application 자동 생성
 #
-# 기존 방식 (App of Apps + recurse: true) 대비 개선점:
-#   - kustomization.yaml 수동 편집 불필요
-#   - 앱별 독립 Application → 개별 롤백 / 개별 sync 가능
-#   - ArgoCD UI 에서 앱 하나씩 독립 카드로 표시
+# 핵심 규칙:
+#   각 infra/{앱}/ 디렉토리는 "배포할 리소스"를 직접 포함해야 함
+#   (kustomization.yaml + 실제 manifest)
+#   Application CRD 를 담은 app.yaml 을 kustomization 으로 감싸는 이중 구조 X
+#
+# argocd 는 Multi-Source 특수케이스 → bootstrap/argocd-app.yaml 에서 직접 관리
+#   → infra/argocd 는 exclude
 # =============================================================================
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -18,49 +19,39 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  # goTemplate 활성화: {{.path.basename}} 같은 Go template 문법 사용
   goTemplate: true
-  goTemplateOptions: [ "missingkey=error" ]
+  goTemplateOptions: ["missingkey=error"]
 
   generators:
     - git:
         repoURL: https://github.com/Neidn/personal-k3s-gitops
         revision: main
         directories:
-          # infra/ 바로 아래 디렉토리를 각각 하나의 Application으로 생성
           - path: infra/*
-          # _template 은 ApplicationSet 자동 스캔에서 제외
+          # argocd: Multi-Source 특수케이스 → bootstrap/argocd-app.yaml 에서 직접 관리
+          - path: infra/argocd
+            exclude: true
+          # _template: 스캔 제외
           - path: infra/_template
             exclude: true
 
   template:
     metadata:
-      # 디렉토리명(=폴더명)이 Application 이름이 됨
-      # 예: infra/argocd → name: argocd
-      #     infra/traefik → name: traefik
       name: "{{.path.basename}}"
       namespace: argocd
       finalizers:
         - resources-finalizer.argocd.argoproj.io
-      annotations:
-        # 각 앱 폴더의 kustomization.yaml 또는 app.yaml 에서 wave 를 지정
-        # 여기서는 기본값 0 (infra 앱별로 annotation 오버라이드)
-        argocd.argoproj.io/sync-wave: "0"
 
     spec:
-      # infra 전용 프로젝트 (projects/infra-project.yaml 에서 정의)
       project: infra
 
       source:
         repoURL: https://github.com/Neidn/personal-k3s-gitops
         targetRevision: main
-        # 각 앱의 디렉토리 경로 (예: infra/argocd, infra/traefik)
         path: "{{.path}}"
 
       destination:
         server: https://kubernetes.default.svc
-        # 각 앱 디렉토리의 kustomization.yaml 에서 namespace 를 지정
-        # ApplicationSet 레벨에서는 argocd 를 기본값으로만 사용
         namespace: argocd
 
       syncPolicy:
@@ -71,7 +62,5 @@ spec:
           - ServerSideApply=true
           - CreateNamespace=true
 
-  # ApplicationSet 자체의 sync 정책
   syncPolicy:
-    # ApplicationSet 삭제 시 하위 Application 도 함께 삭제
     preserveResourcesOnDeletion: false

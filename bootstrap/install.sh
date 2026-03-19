@@ -1,7 +1,6 @@
 #!/bin/bash
 # =============================================================================
 # Bootstrap: ArgoCD 최초 설치 (1회만 실행)
-# 이후 모든 관리는 Git push → ArgoCD 자동 sync
 # =============================================================================
 set -euo pipefail
 
@@ -27,14 +26,17 @@ echo "▶ [3/5] AppProject 생성 (infra / apps 권한 분리)"
 kubectl apply -f ../projects/
 
 echo ""
-echo "▶ [4/5] ApplicationSet 진입점 적용"
+echo "▶ [4/5] ArgoCD self-managed Application 적용"
+# Multi-Source 특수케이스 → ApplicationSet 스캔 대상 외로 직접 관리
+kubectl apply -f ./argocd-app.yaml
+
+echo ""
+echo "▶ [5/5] infra ApplicationSet 진입점 적용"
 kubectl apply -f ./root-appset.yaml
 
 echo ""
-echo "▶ [5/5] 완료"
+echo "완료"
 echo "  ArgoCD UI : https://argocd.neidn.com"
 echo "  초기 admin 패스워드:"
 kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 -d && echo ""
-echo ""
-echo "  이후부터는 Git push 만으로 클러스터가 관리됩니다."

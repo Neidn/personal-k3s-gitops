@@ -1,0 +1,25 @@
+# =============================================================================
+# infra/traefik/config/middleware-ipallowlist.yaml
+#
+# 클러스터 전역 공유 IP allowlist Middleware
+# namespace: kube-system (Traefik 이 위치한 곳)
+#
+# IP 추가/제거는 이 파일 하나만 수정 후 git push
+#
+# 다른 네임스페이스의 IngressRoute 에서 참조하는 방법:
+#   middlewares:
+#     - name: shared-ipallowlist
+#       namespace: kube-system      ← namespace 반드시 명시
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: shared-ipallowlist
+  namespace: kube-system
+spec:
+  ipAllowList:
+    sourceRange:
+      - "118.36.224.186/32"   # 홈 IP
+      # IP 추가 시 여기에만 추가
+      # - "1.2.3.4/32"
+      - "211.44.192.110/32"   # 홈 IP

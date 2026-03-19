@@ -1,8 +1,9 @@
 # =============================================================================
 # infra/traefik/kustomization.yaml
 #
-# ApplicationSet 이 infra/traefik 을 발견하면 이 kustomization 을 적용
-# wave: 0 → argocd(-1) 이후, IngressRoute(1) 이전
+# ApplicationSet 이 infra/traefik 경로를 스캔할 때 렌더링하는 Kustomization
+# config/ 의 실제 리소스(HelmChartConfig, IngressRoute 등)를 직접 포함
+# namespace 는 kube-system (Traefik 이 위치한 곳)
 # =============================================================================
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -10,4 +11,6 @@ kind: Kustomization
 namespace: kube-system
 
 resources:
-  - app.yaml
+  - config/helmchartconfig.yaml
+  - config/middleware-ipallowlist.yaml
+  - config/ingressroute.yaml
