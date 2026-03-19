@@ -12,6 +12,7 @@ spec:
   ipAllowList:
     sourceRange:
       - "118.36.224.186/32"
+      - "211.44.192.110/32"
       # 필요 시 추가 IP
 ---
 apiVersion: traefik.io/v1alpha1
