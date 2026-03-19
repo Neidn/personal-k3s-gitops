@@ -1,0 +1,16 @@
+# =============================================================================
+# infra/argocd/kustomization.yaml
+#
+# ApplicationSet 이 infra/argocd 를 발견하면 이 kustomization 을 적용
+# wave: -1 → 가장 먼저 배포 (Traefik IngressRoute 보다 ArgoCD 자체가 먼저)
+#
+# 이 디렉토리가 관리하는 리소스:
+#   1. ArgoCD Helm 배포 (Multi-Source: chart + values + config)
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: argocd
+
+resources:
+  - app.yaml

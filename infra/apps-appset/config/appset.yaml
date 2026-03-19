@@ -1,0 +1,74 @@
+# =============================================================================
+# infra/apps-appset/config/appset.yaml
+#
+# apps/* 디렉토리를 자동 스캔 → 워크로드 Application 자동 생성
+#
+# 새 앱 추가 방법:
+#   1. apps/{앱명}/ 폴더 생성
+#   2. git push
+#   3. 이 ApplicationSet 이 자동으로 Application 생성
+#
+# 디렉토리 구조 예시:
+#   apps/
+#   ├── n8n/
+#   │   ├── kustomization.yaml
+#   │   ├── app.yaml            ← Helm Multi-Source Application
+#   │   └── chart/values.yaml
+#   ├── carbone/
+#   └── browserless/
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: apps-appset
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+
+  generators:
+    - git:
+        repoURL: https://github.com/Neidn/personal-k3s-gitops
+        revision: main
+        directories:
+          - path: apps/*
+          # 템플릿 디렉토리 제외
+          - path: apps/_template
+            exclude: true
+
+  template:
+    metadata:
+      # 폴더명이 Application 이름
+      # 예: apps/n8n → name: n8n
+      name: "{{.path.basename}}"
+      namespace: argocd
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+
+    spec:
+      # 워크로드 전용 프로젝트 (클러스터 리소스 생성 불가)
+      project: apps
+
+      source:
+        repoURL: https://github.com/Neidn/personal-k3s-gitops
+        targetRevision: main
+        path: "{{.path}}"
+
+      destination:
+        server: https://kubernetes.default.svc
+        # 각 앱 kustomization.yaml 에서 namespace 지정
+        namespace: "{{.path.basename}}"
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - ServerSideApply=true
+          - CreateNamespace=true
+
+  syncPolicy:
+    preserveResourcesOnDeletion: false

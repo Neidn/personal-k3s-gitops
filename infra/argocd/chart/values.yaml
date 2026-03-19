@@ -1,10 +1,80 @@
+# =============================================================================
+# infra/argocd/chart/values.yaml
+# ArgoCD Helm chart values (argo/argo-cd)
+# =============================================================================
+
 global:
   domain: argocd.neidn.com
 
 configs:
   params:
+    # Traefik IngressRoute 가 TLS 처리 → ArgoCD 자체는 insecure 모드
     server.insecure: true
 
+  cm:
+    # Kustomize 에서 Helm 빌드 허용
+    kustomize.buildOptions: "--enable-helm"
+
+    # ApplicationSet 이 생성한 Application 의 resource health 커스터마이징
+    # Traefik CRD 리소스가 Unknown 으로 뜨는 현상 방지
+    resource.customizations.health.traefik.io_IngressRoute: |
+      hs = {}
+      hs.status = "Healthy"
+      return hs
+    resource.customizations.health.traefik.io_Middleware: |
+      hs = {}
+      hs.status = "Healthy"
+      return hs
+    resource.customizations.health.helm.cattle.io_HelmChartConfig: |
+      hs = {}
+      hs.status = "Healthy"
+      return hs
+
 server:
+  # Traefik IngressRoute 로 직접 노출 → 내장 Ingress 비활성화
   ingress:
     enabled: false
+
+  # ARM64 단일 노드 환경 리소스 튜닝
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+repoServer:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+applicationSet:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+notifications:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+redis:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+dex:
+  # SSO 미사용 시 비활성화 (리소스 절약)
+  enabled: false

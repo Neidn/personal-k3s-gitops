@@ -1,3 +1,7 @@
+# =============================================================================
+# infra/traefik/config/helmchartconfig.yaml
+# k3s 내장 Traefik HelmChartConfig
+# =============================================================================
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
 metadata:
@@ -8,12 +12,14 @@ spec:
     globalArguments:
       - "--global.checknewversion=false"
       - "--global.sendanonymoususage=false"
+
     additionalArguments:
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.letsencrypt.acme.email=dty3152@gmail.com"
       - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
       - "--api.dashboard=true"
+
     ports:
       web:
         redirections:
@@ -24,9 +30,11 @@ spec:
       websecure:
         tls:
           enabled: true
+
     service:
       spec:
         externalTrafficPolicy: Local
+
     persistence:
       enabled: true
       size: 128Mi

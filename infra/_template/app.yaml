@@ -1,0 +1,55 @@
+# =============================================================================
+# infra/_template/app.yaml
+#
+# 패턴 A: Helm chart + Git values (Multi-Source)
+#   ArgoCD, 외부 Helm chart 앱에 사용
+#
+# 패턴 B: Git path 단독 (kustomize)
+#   traefik 처럼 k3s 내장 또는 커스텀 매니페스트 앱에 사용
+# =============================================================================
+
+# ── 패턴 A: Multi-Source Helm ─────────────────────────────────────────────
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: REPLACE_APP_NAME
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    # wave 값: -1(argocd), 0(infra), 1(config/ingress), 2(apps)
+    argocd.argoproj.io/sync-wave: "0"
+
+spec:
+  project: infra   # 또는 apps
+
+  sources:
+    # Source 1: Helm chart
+    - repoURL: https://REPLACE_HELM_REPO
+      chart: REPLACE_CHART_NAME
+      targetRevision: "REPLACE_VERSION"   # renovate: registryUrl=https://REPLACE_HELM_REPO chart=REPLACE_CHART_NAME
+      helm:
+        valueFiles:
+          - $values/infra/REPLACE_APP_NAME/chart/values.yaml
+
+    # Source 2: $values 제공
+    - repoURL: https://github.com/Neidn/personal-k3s-gitops
+      targetRevision: main
+      ref: values
+
+    # Source 3: 추가 리소스 (IngressRoute 등, 없으면 제거)
+    - repoURL: https://github.com/Neidn/personal-k3s-gitops
+      targetRevision: main
+      path: infra/REPLACE_APP_NAME/config
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: REPLACE_NAMESPACE
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true

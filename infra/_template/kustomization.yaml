@@ -1,0 +1,19 @@
+# =============================================================================
+# infra/_template/kustomization.yaml
+#
+# 새 infra 앱 추가 방법:
+#   1. infra/{앱명}/ 디렉토리 복사
+#   2. app.yaml 의 name, chart, targetRevision, values 경로 수정
+#   3. chart/values.yaml 작성
+#   4. Git push → ApplicationSet 이 자동으로 Application 생성
+#
+# ApplicationSet 에서 exclude 하려면:
+#   bootstrap/root-appset.yaml 의 directories 에 exclude: true 항목 추가
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: REPLACE_NAMESPACE
+
+resources:
+  - app.yaml

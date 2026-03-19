@@ -1,0 +1,59 @@
+# =============================================================================
+# infra/argocd/app.yaml
+#
+# ArgoCD 자체를 ArgoCD 가 관리 (self-managed)
+#
+# Multi-Source 구성:
+#   Source 1 — Helm chart (argo/argo-cd)
+#   Source 2 — Git ref ($values 제공용)
+#   Source 3 — Git path: infra/argocd/config/ (IngressRoute, AppProject 등)
+#
+# sync-wave: -1
+#   → ApplicationSet 이 생성하는 앱 중 가장 먼저 배포
+#   → Traefik(wave 0) 보다 ArgoCD 코어가 먼저 올라와야 함
+#   → IngressRoute(config/)는 wave: 1 로 Traefik CRD 준비 이후 적용
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+
+spec:
+  project: infra
+
+  sources:
+    # ── Source 1: ArgoCD Helm Chart ────────────────────────────────────────
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: "9.4.10"   # renovate: registryUrl=https://argoproj.github.io/argo-helm chart=argo-cd
+      helm:
+        valueFiles:
+          - $values/infra/argocd/chart/values.yaml
+
+    # ── Source 2: Git repo ($values 변수 제공) ─────────────────────────────
+    - repoURL: https://github.com/Neidn/personal-k3s-gitops
+      targetRevision: main
+      ref: values
+
+    # ── Source 3: ArgoCD 설정 리소스 (IngressRoute, config 등) ────────────
+    #   기존 argocd-config-app.yaml 의 역할을 여기서 통합 처리
+    - repoURL: https://github.com/Neidn/personal-k3s-gitops
+      targetRevision: main
+      path: infra/argocd/config
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true

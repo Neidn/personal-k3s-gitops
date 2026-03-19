@@ -1,0 +1,44 @@
+# =============================================================================
+# AppProject: infra
+#
+# 대상: ArgoCD, Traefik, Cilium 등 클러스터 인프라 컴포넌트
+# 권한: 클러스터 리소스 생성/수정 허용 (CRD, ClusterRole 등)
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: infra
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: "Cluster infrastructure components (ArgoCD, Traefik, CNI, etc.)"
+
+  sourceRepos:
+    - "https://github.com/Neidn/personal-k3s-gitops"
+    - "https://argoproj.github.io/argo-helm"
+    - "https://helm.traefik.io/traefik"
+    # 인프라 앱 추가 시 여기에 helm repo URL 추가
+
+  destinations:
+    - namespace: "argocd"
+      server: "https://kubernetes.default.svc"
+    - namespace: "kube-system"
+      server: "https://kubernetes.default.svc"
+    - namespace: "cert-manager"
+      server: "https://kubernetes.default.svc"
+    # 인프라 앱 추가 시 namespace 추가
+
+  # 클러스터 전역 리소스 생성 허용 (인프라 컴포넌트는 CRD, ClusterRole 등 필요)
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+
+  # 네임스페이스 리소스는 전부 허용
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+
+  # orphaned 리소스 감지 활성화
+  orphanedResources:
+    warn: true
