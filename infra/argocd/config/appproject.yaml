@@ -48,3 +48,9 @@ spec:
       - group: ""
         kind: Secret
         name: sh.helm.release.v1.argocd.v1  # Helm release 메타데이터
+      - group: ""
+        kind: ServiceAccount
+        name: default             # k8s 모든 네임스페이스 자동생성
+      - group: ""
+        kind: Endpoints
+        name: "*"                 # Service 생성 시 자동생성 (deprecated → EndpointSlice)
