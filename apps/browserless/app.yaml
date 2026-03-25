@@ -1,0 +1,36 @@
+# =============================================================================
+# apps/browserless/app.yaml
+#
+# 패턴 B — Git path 단독
+#
+# Browserless는 공식 Helm chart가 없으므로
+# config/ 아래 직접 작성한 매니페스트를 배포
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: browserless
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: apps
+  source:
+    repoURL: https://github.com/Neidn/personal-k3s-gitops
+    targetRevision: main
+    path: apps/browserless/config
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: browserless
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true
+    ignoreDifferences:
+      - group: apps
+        kind: Deployment
+        jsonPointers:
+          - /spec/replicas   # HPA가 replica 수 관리

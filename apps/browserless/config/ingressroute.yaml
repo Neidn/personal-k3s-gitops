@@ -1,0 +1,58 @@
+# ─── HTTPS ───────────────────────────────────────────────────
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: browserless
+  namespace: browserless
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`browserless.neidn.com`)
+      kind: Rule
+      services:
+        - name: browserless
+          port: 3000
+      middlewares:
+        # infra/traefik/config/middleware-ipallowlist.yaml 참조
+        - name: shared-ipallowlist
+          namespace: kube-system
+        # WebSocket 헤더 (아래 로컬 미들웨어)
+        - name: browserless-ws
+          namespace: browserless
+  tls:
+    certResolver: letsencrypt
+
+---
+# ─── HTTP → HTTPS ────────────────────────────────────────────
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: browserless-http
+  namespace: browserless
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`browserless.neidn.com`)
+      kind: Rule
+      middlewares:
+        # infra/traefik/config/middleware-ipallowlist.yaml 참조
+        - name: shared-ipallowlist
+          namespace: kube-system
+      services:
+        - name: browserless
+          port: 3000
+
+---
+# ─── WebSocket 미들웨어 (browserless 전용) ────────────────────
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: browserless-ws
+  namespace: browserless
+spec:
+  headers:
+    customRequestHeaders:
+      Connection: "Upgrade"
+      X-Forwarded-Proto: "https"
