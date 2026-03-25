@@ -18,6 +18,7 @@ spec:
     - "https://github.com/Neidn/personal-k3s-gitops"
     - "https://argoproj.github.io/argo-helm"
     - "https://helm.traefik.io/traefik"
+    - "https://bitnami-labs.github.io/sealed-secrets"
     # 인프라 앱 추가 시 여기에 helm repo URL 추가
 
   destinations:
