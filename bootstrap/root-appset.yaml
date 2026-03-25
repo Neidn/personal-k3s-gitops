@@ -61,12 +61,12 @@ spec:
         syncOptions:
           - ServerSideApply=true
           - CreateNamespace=true
-          -
+
       ignoreDifferences:
         - group: apps
           kind: Deployment
           jqPathExpressions:
-            - .spec.template.spec.containers[].env[].valueFrom.resourceFieldRef.diviso
+            - .spec.template.spec.containers[].env[].valueFrom.resourceFieldRef.divisor
 
   syncPolicy:
     preserveResourcesOnDeletion: false
