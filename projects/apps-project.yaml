@@ -31,6 +31,8 @@ spec:
   clusterResourceWhitelist:
     - group: ""
       kind: Namespace
+    - group: "argoproj.io"
+      kind: Application
 
   # 네임스페이스 리소스만 허용
   namespaceResourceWhitelist:
