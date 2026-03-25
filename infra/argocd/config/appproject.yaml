@@ -61,3 +61,13 @@ spec:
       - group: ""
         kind: Secret
         name: argocd-redis
+          # ArgoCD CRD 리소스 자체는 ArgoCD가 관리하지 않음
+      - group: "argoproj.io"
+        kind: Application
+        name: "*"
+      - group: "argoproj.io"
+        kind: AppProject
+        name: "*"
+      - group: "argoproj.io"
+        kind: ApplicationSet
+        name: "*"
