@@ -1,5 +1,66 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+namespace: browserless
+
+helmCharts:
+  - name: browserless
+    repo: https://icoretech.github.io/helm
+    version: "0.4.0"
+    releaseName: browserless
+    namespace: browserless
+    valuesInline:
+      image:
+        browser: chromium
+        pullPolicy: IfNotPresent
+        tag: ""
+
+      replicaCount: 2
+
+      config:
+        host: 0.0.0.0
+        port: 3000
+        token: ""
+        tokenSecretRef:
+          name: browserless-token
+          key: token
+        timeout: 30000
+        concurrent: 10
+        queued: 10
+        debug: "-*"
+        external: "https://browserless.neidn.com"
+
+      service:
+        type: ClusterIP
+        port: 3000
+
+      autoscaling:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 5
+        targetCPUUtilizationPercentage: 70
+
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "250m"
+        limits:
+          memory: "1Gi"
+          cpu: "1000m"
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: In
+                      values:
+                        - browserless
+                topologyKey: kubernetes.io/hostname
+
 resources:
-  - app.yaml
+  - secret.yaml
+  - ingressroute.yaml

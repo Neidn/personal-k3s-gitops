@@ -1,0 +1,16 @@
+# ============================================================
+# ★ 평문 Secret — Git push 전 반드시 처리
+#
+# .gitignore에 추가 후 kubectl로 직접 생성:
+#   kubectl create secret generic browserless-token \
+#     --from-literal=token=실제토큰값 \
+#     -n browserless
+# ============================================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: browserless-token
+  namespace: browserless
+type: Opaque
+stringData:
+  token: "CHANGE_ME"
