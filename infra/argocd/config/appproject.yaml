@@ -1,0 +1,49 @@
+# =============================================================================
+# infra/argocd/config/appproject.yaml
+#
+# infra AppProject 정의
+# orphanedResources.warn: true + 자동생성 리소스 ignore 설정
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: infra
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: "Cluster infrastructure components (ArgoCD, Traefik, CNI, etc.)"
+  sourceRepos:
+    - https://github.com/Neidn/personal-k3s-gitops
+    - https://argoproj.github.io/argo-helm
+    - https://helm.traefik.io/traefik
+  destinations:
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+    - namespace: kube-system
+      server: https://kubernetes.default.svc
+    - namespace: cert-manager
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  orphanedResources:
+    warn: true
+    ignore:
+      - group: ""
+        kind: Pod                  # Deployment/StatefulSet 자동생성
+      - group: ""
+        kind: ConfigMap
+        name: kube-root-ca.crt    # k8s 자동생성
+      - group: ""
+        kind: Secret
+        name: argocd-initial-admin-secret  # 초기 설치 자동생성
+      - group: ""
+        kind: Secret
+        name: argocd-redis        # Helm 자동생성
+      - group: "helm.sh"
+        kind: Secret
+        name: sh.helm.release.v1.argocd.v1  # Helm release 메타데이터
