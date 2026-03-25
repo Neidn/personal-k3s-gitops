@@ -6,7 +6,7 @@
 #
 # sourceRepos / destinations 를 * 로 허용
 #   → 앱 추가 시마다 이 파일 수동 편집 불필요
-#   → clusterResourceWhitelist: [] 로 보안 유지
+#   → clusterResourceWhitelist: Namespace만 허용, 나머지 클러스터 리소스 차단
 # =============================================================================
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
@@ -26,8 +26,11 @@ spec:
     - namespace: "*"
       server: "https://kubernetes.default.svc"
 
-  # 클러스터 전역 리소스 생성 불가 (핵심 보안 제약)
-  clusterResourceWhitelist: []
+  # Namespace만 허용 — 앱이 자기 namespace 생성 가능
+  # CRD, ClusterRole 등 인프라 리소스는 여전히 차단
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
 
   # 네임스페이스 리소스만 허용
   namespaceResourceWhitelist:
