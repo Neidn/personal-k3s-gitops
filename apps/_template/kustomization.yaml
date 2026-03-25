@@ -5,7 +5,6 @@ namespace: REPLACE_APP_NAME
 
 # =============================================================================
 # 패턴 A — Helm chart가 있는 경우
-# helmCharts 블록을 사용하여 Helm chart를 Kustomize가 렌더링
 # =============================================================================
 helmCharts:
   - name: REPLACE_CHART_NAME
@@ -14,7 +13,6 @@ helmCharts:
     releaseName: REPLACE_APP_NAME
     namespace: REPLACE_APP_NAME
     valuesInline:
-      # Helm values를 여기에 직접 작성
       replicaCount: 1
 
       service:
@@ -37,10 +35,13 @@ helmCharts:
 #   - namespace.yaml
 #   - deployment.yaml
 #   - service.yaml
+#   - secret.yaml
 #   - ingressroute.yaml
 
 # =============================================================================
-# 공통 — Helm 여부와 관계없이 추가 리소스 (IngressRoute 등)
+# 공통 추가 리소스
+# Secret이 필요 없으면 secret.yaml 줄 제거
 # =============================================================================
 resources:
+  - secret.yaml
   - ingressroute.yaml
