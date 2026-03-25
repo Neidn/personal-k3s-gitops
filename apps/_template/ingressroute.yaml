@@ -1,0 +1,41 @@
+# ─── HTTPS ────────────────────────────────────────────────────────────────────
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: REPLACE_APP_NAME
+  namespace: REPLACE_APP_NAME
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`REPLACE_APP_NAME.neidn.com`)
+      kind: Rule
+      services:
+        - name: REPLACE_APP_NAME
+          port: 80   # ← chart의 service.port 와 맞출 것
+      middlewares:
+        # 공용 IP allowlist (infra/traefik/config/middleware-ipallowlist.yaml)
+        - name: shared-ipallowlist
+          namespace: kube-system
+  tls:
+    certResolver: letsencrypt
+
+---
+# ─── HTTP → HTTPS 리다이렉트 ──────────────────────────────────────────────────
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: REPLACE_APP_NAME-http
+  namespace: REPLACE_APP_NAME
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`REPLACE_APP_NAME.neidn.com`)
+      kind: Rule
+      middlewares:
+        - name: shared-ipallowlist
+          namespace: kube-system
+      services:
+        - name: REPLACE_APP_NAME
+          port: 80

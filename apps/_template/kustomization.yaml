@@ -1,5 +1,46 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+namespace: REPLACE_APP_NAME
+
+# =============================================================================
+# 패턴 A — Helm chart가 있는 경우
+# helmCharts 블록을 사용하여 Helm chart를 Kustomize가 렌더링
+# =============================================================================
+helmCharts:
+  - name: REPLACE_CHART_NAME
+    repo: https://REPLACE_HELM_REPO_URL
+    version: "REPLACE_VERSION"
+    releaseName: REPLACE_APP_NAME
+    namespace: REPLACE_APP_NAME
+    valuesInline:
+      # Helm values를 여기에 직접 작성
+      replicaCount: 1
+
+      service:
+        type: ClusterIP
+        port: 80
+
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "100m"
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
+
+# =============================================================================
+# 패턴 B — Helm chart가 없는 경우
+# helmCharts 블록을 제거하고 resources에 직접 매니페스트 파일 나열
+# =============================================================================
+# resources:
+#   - namespace.yaml
+#   - deployment.yaml
+#   - service.yaml
+#   - ingressroute.yaml
+
+# =============================================================================
+# 공통 — Helm 여부와 관계없이 추가 리소스 (IngressRoute 등)
+# =============================================================================
 resources:
-  - app.yaml
+  - ingressroute.yaml
