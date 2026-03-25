@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: browserless
-  labels:
-    name: browserless
-    istio.io/dataplane-mode: ambient

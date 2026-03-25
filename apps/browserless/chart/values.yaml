@@ -1,0 +1,73 @@
+# =============================================================================
+# apps/browserless/chart/values.yaml
+#
+# icoretech/browserless chart values
+# https://github.com/icoretech/helm/tree/main/charts/browserless
+# =============================================================================
+
+# ARM64 k3s — chromium 이미지 사용
+image:
+  browser: chromium
+  pullPolicy: IfNotPresent
+  tag: ""  # 비워두면 Chart appVersion 사용 (Renovate Bot이 자동 업데이트)
+
+replicaCount: 2
+
+config:
+  host: 0.0.0.0
+  port: 3000
+
+  # ★ 평문 token 대신 Secret 참조 사용 (보안)
+  # Secret 생성:
+  #   kubectl create secret generic browserless-token \
+  #     --from-literal=token=실제토큰값 \
+  #     -n browserless
+  token: ""
+  tokenSecretRef:
+    name: browserless-token
+    key: token
+
+  # 세션 설정
+  timeout: 30000      # 30초
+  concurrent: 10      # 동시 세션 수
+  queued: 10          # 최대 대기 수
+
+  # 로그 최소화
+  debug: "-*"
+
+  # 프록시/LB 뒤에서 실행 시 외부 URL 설정
+  external: "https://browserless.neidn.com"
+
+service:
+  type: ClusterIP
+  port: 3000
+
+# HPA (Helm chart 내장)
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+# ARM64 k3s 기준 리소스
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
+
+# Pod 분산 배치
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - browserless
+          topologyKey: kubernetes.io/hostname
