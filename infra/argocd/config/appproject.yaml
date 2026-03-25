@@ -44,6 +44,6 @@ spec:
       - group: ""
         kind: Secret
         name: argocd-redis        # Helm 자동생성
-      - group: "helm.sh"
+      - group: ""
         kind: Secret
         name: sh.helm.release.v1.argocd.v1  # Helm release 메타데이터
