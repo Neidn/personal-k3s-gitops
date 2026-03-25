@@ -35,6 +35,7 @@ spec:
     ignore:
       - group: ""
         kind: Pod                  # Deployment/StatefulSet 자동생성
+        name: "*"
       - group: ""
         kind: ConfigMap
         name: kube-root-ca.crt    # k8s 자동생성
