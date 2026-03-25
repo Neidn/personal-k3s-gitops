@@ -33,24 +33,31 @@ spec:
   orphanedResources:
     warn: true
     ignore:
+      # Pod - Deployment/StatefulSet/DaemonSet 자동생성
       - group: ""
-        kind: Pod                  # Deployment/StatefulSet 자동생성
+        kind: Pod
         name: "*"
-      - group: ""
-        kind: ConfigMap
-        name: kube-root-ca.crt    # k8s 자동생성
-      - group: ""
-        kind: Secret
-        name: argocd-initial-admin-secret  # 초기 설치 자동생성
-      - group: ""
-        kind: Secret
-        name: argocd-redis        # Helm 자동생성
-      - group: ""
-        kind: Secret
-        name: sh.helm.release.v1.argocd.v1  # Helm release 메타데이터
-      - group: ""
-        kind: ServiceAccount
-        name: default             # k8s 모든 네임스페이스 자동생성
+      # ReplicaSet - Deployment 자동생성
+      - group: "apps"
+        kind: ReplicaSet
+      # ControllerRevision - StatefulSet/DaemonSet 자동생성
+      - group: "apps"
+        kind: ControllerRevision
+      # Endpoints - Service 자동생성 (deprecated)
       - group: ""
         kind: Endpoints
-        name: "*"                 # Service 생성 시 자동생성 (deprecated → EndpointSlice)
+      # EndpointSlice - Service 자동생성
+      - group: "discovery.k8s.io"
+        kind: EndpointSlice
+      # Helm release 메타데이터
+      - group: ""
+        kind: Secret
+        name: "sh.helm.release.v1.*"
+      # ArgoCD 초기 설치 Secret
+      - group: ""
+        kind: Secret
+        name: argocd-initial-admin-secret
+      # Helm이 자동생성하는 redis secret
+      - group: ""
+        kind: Secret
+        name: argocd-redis
