@@ -29,8 +29,8 @@ spec:
     syncOptions:
       - ServerSideApply=true
       - CreateNamespace=true
-    ignoreDifferences:
-      - group: apps
-        kind: Deployment
-        jsonPointers:
-          - /spec/replicas   # HPA가 replica 수 관리
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - .spec.replicas
