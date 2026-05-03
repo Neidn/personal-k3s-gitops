@@ -15,8 +15,8 @@ spec:
           port: 3000
       middlewares:
         # 공용 IP allowlist (infra/traefik/config/middleware-ipallowlist.yaml)
-        - name: shared-ipallowlist
-          namespace: kube-system
+#        - name: shared-ipallowlist
+#          namespace: kube-system
         # WebSocket 헤더 (아래 로컬 미들웨어)
         - name: browserless-ws
           namespace: browserless
@@ -36,9 +36,9 @@ spec:
   routes:
     - match: Host(`browserless.neidn.com`)
       kind: Rule
-      middlewares:
-        - name: shared-ipallowlist
-          namespace: kube-system
+#      middlewares:
+#        - name: shared-ipallowlist
+#          namespace: kube-system
       services:
         - name: browserless
           port: 3000

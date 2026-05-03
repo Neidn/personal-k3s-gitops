@@ -18,9 +18,9 @@ spec:
   routes:
     - kind: Rule
       match: Host(`argocd.neidn.com`)
-      middlewares:
-        - name: shared-ipallowlist
-          namespace: kube-system    # 공유 Middleware 참조
+#      middlewares:
+#        - name: shared-ipallowlist
+#          namespace: kube-system    # 공유 Middleware 참조
       priority: 10
       services:
         - name: argocd-server

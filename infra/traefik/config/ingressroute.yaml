@@ -15,9 +15,9 @@ spec:
   routes:
     - match: Host(`traefik.neidn.com`)
       kind: Rule
-      middlewares:
-        - name: shared-ipallowlist
-          namespace: kube-system    # 공유 Middleware 참조
+#      middlewares:
+#        - name: shared-ipallowlist
+#          namespace: kube-system    # 공유 Middleware 참조
       services:
         - name: api@internal
           kind: TraefikService
