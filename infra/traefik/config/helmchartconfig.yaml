@@ -1,6 +1,29 @@
 # =============================================================================
 # infra/traefik/config/helmchartconfig.yaml
 # k3s 내장 Traefik HelmChartConfig
+#
+# ─── ACME 챌린지: DNS-01 (Cloudflare) ─────────────────────────────────────────
+# 2026-08-02: HTTP-01 → DNS-01 전환.
+#
+# 이유: neidn.com 의 모든 호스트가 Tailscale 뒤에 있음.
+#   traefik.neidn.com          A     100.111.55.127                  (CGNAT 100.64/10)
+#   neidn.com / www / dashboard / argocd / browserless / stock-*
+#                              CNAME a1-flex-vnic.tailb26cca.ts.net  (tailnet 전용)
+# 둘 다 공개 인터넷에서 해석/도달 불가 → Let's Encrypt 가 HTTP-01 챌린지를
+# 검증할 방법이 없어 2026-08-01 만료까지 갱신이 매일 실패했다.
+#   "urn:ietf:params:acme:error:dns :: NXDOMAIN looking up A for dashboard.neidn.com"
+#   "no valid A records found for traefik.neidn.com"
+#
+# DNS-01 은 Cloudflare API 로 _acme-challenge TXT 레코드만 쓰면 되므로
+# 서버가 공개 도달 가능할 필요가 없다. tailnet-only 구성에 맞는 유일한 방식.
+#
+# resolvers 를 공개 DNS 로 고정하는 이유: 노드가 Tailscale split-DNS 로
+# neidn.com 을 처리하고 있어, lego 의 TXT 전파 확인이 tailnet 리졸버를 타면
+# 권威 NS 조회가 어긋날 수 있다. 1.1.1.1/8.8.8.8 로 직접 확인시킨다.
+#
+# CF_DNS_API_TOKEN 은 config/secret.yaml (SealedSecret) 이 만드는
+# Secret "cloudflare-dns-token" 에서 주입된다.
+# 토큰 권한: Zone:Zone:Read + Zone:DNS:Edit (neidn.com 존 한정)
 # =============================================================================
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
@@ -14,11 +37,19 @@ spec:
       - "--global.sendanonymoususage=false"
 
     additionalArguments:
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
       - "--certificatesresolvers.letsencrypt.acme.email=dty3152@gmail.com"
       - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
       - "--api.dashboard=true"
+
+    env:
+      - name: CF_DNS_API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: cloudflare-dns-token
+            key: token
 
     ports:
       web:
@@ -38,7 +69,7 @@ spec:
     persistence:
       enabled: true
       size: 128Mi
-    
+
     providers:
       kubernetesCRD:
         allowCrossNamespace: true

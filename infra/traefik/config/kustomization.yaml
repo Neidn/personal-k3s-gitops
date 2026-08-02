@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: kube-system
 
 resources:
+  - secret.yaml                   # cloudflare-dns-token (ACME DNS-01)
   - helmchartconfig.yaml
   - middleware-ipallowlist.yaml   # 공유 IP allowlist (전체 앱에서 참조)
   - ingressroute.yaml
