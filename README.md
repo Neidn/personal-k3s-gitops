@@ -40,14 +40,10 @@ k3s 위에서 ArgoCD ApplicationSet + Kustomize Helm 패턴으로 관리하는 G
 │           └── appset.yaml
 │
 └── apps/
-    ├── _template/              # 새 워크로드 앱 추가 시 복사해서 사용
-    │   ├── kustomization.yaml  # helmCharts 포함
-    │   ├── ingressroute.yaml
-    │   └── secret.yaml
-    └── browserless/            # Chromium headless browser
+    └── _template/              # 새 워크로드 앱 추가 시 복사해서 사용
         ├── kustomization.yaml  # helmCharts 포함
         ├── ingressroute.yaml
-        └── secret.yaml         # SealedSecret
+        └── secret.yaml
 ```
 
 ---
@@ -62,8 +58,7 @@ Git push
         │                                └─→ IngressRoute       (wave 1)
         ├─→ infra/sealed-secrets       → sealed-secrets-controller (kube-system)
         └─→ infra/apps-appset          → ApplicationSet for apps/*
-              └─→ apps/* 자동 스캔
-                    └─→ apps/browserless → Browserless (kustomize helmCharts)
+              └─→ apps/* 자동 스캔 (현재 등록된 워크로드 없음)
 ```
 
 ### sync-wave 배포 순서
@@ -206,7 +201,7 @@ kubectl rollout restart deployment sealed-secrets-controller -n kube-system
 | 프로젝트 | 대상 | 클러스터 리소스 | 허용 네임스페이스 | 소스 레포 |
 |----------|------|----------------|-----------------|----------|
 | `infra`  | ArgoCD, Traefik, Sealed Secrets 등 | 전체 허용 (CRD, ClusterRole 등) | argocd, kube-system, cert-manager | GitHub, ArgoCD Helm, Traefik Helm, Sealed Secrets Helm (명시 필요) |
-| `apps`   | Browserless 등 워크로드 | `Namespace`, `Application` 만 허용 | 전체 (`*`) | 전체 (`*`) |
+| `apps`   | 워크로드 앱 전체 | `Namespace`, `Application` 만 허용 | 전체 (`*`) | 전체 (`*`) |
 
 - `infra` 프로젝트에 새 Helm 레포를 사용하는 앱을 추가할 때는 `projects/infra-project.yaml` 의 `sourceRepos` 에 해당 레포 URL을 추가해야 함
 - `infra` 프로젝트에 새 네임스페이스가 필요한 앱을 추가할 때는 `destinations` 에도 네임스페이스를 추가해야 함
@@ -227,9 +222,7 @@ kubectl rollout restart deployment sealed-secrets-controller -n kube-system
 
 ### 워크로드
 
-| 앱 | 네임스페이스 | 설명 |
-|----|------------|------|
-| browserless | browserless | Chromium headless browser, HPA(2–5), `browserless.neidn.com` |
+현재 배포된 워크로드 없음 (`apps/*` 비어 있음, `apps/_template` 만 존재)
 
 ---
 
